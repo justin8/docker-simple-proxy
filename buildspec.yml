@@ -6,14 +6,16 @@ phases:
       - "pip install credstash"
   pre_build:
     commands:
+      - "env"
       - "mkdir -p ~/.docker"
       - "credstash get docker-credentials > ~/.docker/config.json"
-      - "env"
+      - "echo $CODEBUILD_RESOLVED_SOURCE_VERSION > sha"
   build:
     commands:
       - "docker pull justin8/simple-proxy || :"
       - "docker build -t justin8/simple-proxy:latest ."
   post_build:
-    command:
-      - "docker tag justin8/simple-proxy:latest justin8/simple-proxy:latest"
+    commands:
+      - "docker tag justin8/simple-proxy:latest justin8/simple-proxy:$(cat sha)"
       - "docker push justin8/simple-proxy:latest"
+      - "docker push justin8/simple-proxy:$(cat sha)"
