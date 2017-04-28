@@ -1,0 +1,19 @@
+version: 0.1
+
+phases:
+  install:
+    commands:
+      - "pip install credstash"
+  pre_build:
+    commands:
+      - "mkdir -p ~/.docker"
+      - "credstash get docker-credentials > ~/.docker/config.json"
+      - "env"
+  build:
+    commands:
+      - "docker pull justin8/simple-proxy || :"
+      - "docker build -t justin8/simple-proxy:latest ."
+  post_build:
+    command:
+      - "docker tag justin8/simple-proxy:latest justin8/simple-proxy:latest"
+      - "docker push justin8/simple-proxy:latest"

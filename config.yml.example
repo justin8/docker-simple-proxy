@@ -1,4 +1,4 @@
-tld: dray.be
+tld: example.com
 port: 8080
 services:
   - name: "transmission"
