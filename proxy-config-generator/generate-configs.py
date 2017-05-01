@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse
+import click
 import os
 import shutil
 import subprocess
@@ -22,15 +22,18 @@ def start_nginx():
         sys.exit(e.returncode)
 
 
-def get_config(config_file=False, output_dir=False):
+def get_config(config_file=False, output_dir=False, dns_tld=None):
     if not hasattr(get_config, 'config'):
         with open(config_file) as f:
             get_config.config = yaml.load(f)
         get_config.config['output_dir'] = output_dir
+        if dns_tld:
+            get_config.config['tld'] = dns_tld
+        log.debug(f"Parsed config: {get_config.config}")
     return get_config.config
 
 
-def generate_nginx_config(args):
+def generate_nginx_config():
     config = get_config()
     try:
         shutil.rmtree(config['output_dir'])
@@ -60,28 +63,26 @@ def generate_service_config(service):
                                         host=service['host'],
                                         port=config['port'],))
 
-def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--start",
-                        help="Start nginx after creating the config files",
-                        default=False,
-                        action="store_true")
-    parser.add_argument("--config-file",
-                        help="The yaml config file to read from",
-                        default='/config.yml',
-                        action="store")
-    parser.add_argument("--output-dir",
-                        help="The directory to save config files to",
-                        default='/etc/nginx/conf.d',
-                        action="store")
 
-    args = parser.parse_args()
+@click.command()
+@click.option("-v", "--verbose", count=True, help="Enable more logging. More -v's for more logging")
+@click.option("--start", flag_value=True, help="Start nginx after creating the config files")
+@click.option("--config-file", default="/config.yml", show_default=True, help="The yaml config file to read from")
+@click.option("--output-dir", default="/etc/nginx/conf.d", show_default=True, help="The directory to save config files to")
+@click.option("--dns-tld", envvar="DNS_TLD", help="If defined, this TLD will be used instead of the value in the specified config file. Also reads 'DNS_TLD' environment variable.")
+def main(verbose, start, config_file, output_dir, dns_tld):
+    log_level = logging.WARNING
+    if verbose == 1:
+        log_level = logging.INFO
+    if verbose >= 2:
+        log_level = logging.DEBUG
+    logging.basicConfig(level=log_level)
 
-    get_config(args.config_file, args.output_dir)
+    get_config(config_file, output_dir, dns_tld)
 
-    generate_nginx_config(args)
+    generate_nginx_config()
 
-    if args.start:
+    if start:
         start_nginx()
 
 if __name__ == "__main__":
