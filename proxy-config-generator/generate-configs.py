@@ -29,7 +29,7 @@ def get_config(config_file=False, output_dir=False, dns_tld=None):
         get_config.config['output_dir'] = output_dir
         if dns_tld:
             get_config.config['tld'] = dns_tld
-        log.debug("Parsed config: " + get_config.config)
+        log.debug("Parsed config: " + str(get_config.config))
     return get_config.config
 
 
