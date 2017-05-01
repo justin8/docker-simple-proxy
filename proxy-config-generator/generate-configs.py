@@ -5,12 +5,21 @@ import os
 import shutil
 import subprocess
 import yaml
+import logging
+import sys
 
 from jinja2 import Template
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+log = logging.getLogger()
+
 
 def start_nginx():
-    subprocess.call(['nginx'])
+    try:
+        subprocess.check_output(['nginx'])
+    except subprocess.CalledProcessError as e:
+        log.error("Failed to start nginx!")
+        sys.exit(e.returncode)
 
 
 def get_config(config_file=False, output_dir=False):
