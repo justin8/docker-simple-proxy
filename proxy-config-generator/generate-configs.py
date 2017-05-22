@@ -7,6 +7,7 @@ import subprocess
 import yaml
 import logging
 import sys
+from pathlib import Path
 
 from jinja2 import Template
 
@@ -22,15 +23,29 @@ def start_nginx():
         sys.exit(e.returncode)
 
 
-def get_config(config_file=False, output_dir=False, dns_tld=None):
+def get_config(config_file=False, output_dir=False):
     if not hasattr(get_config, 'config'):
-        with open(config_file) as f:
-            get_config.config = yaml.load(f)
-        get_config.config['output_dir'] = output_dir
-        if dns_tld:
-            get_config.config['tld'] = dns_tld
-        log.debug("Parsed config: " + str(get_config.config))
+        config = {'services': []}
+        if config_file.exists():
+            with config_file.open() as f:
+                config = yaml.load(f)
+        config['output_dir'] = output_dir
+        config = parse_config_from_env(config)
+        log.debug("Parsed config: " + str(config))
+        get_config.config = config
     return get_config.config
+
+
+def parse_config_from_env(config):
+    if 'DNS_TLD' in os.environ:
+        config['tld'] = os.environ['DNS_TLD']
+    if 'PROXY_PORT' in os.environ:
+        config['port'] = os.environ['PROXY_PORT']
+    if 'PROXY_ENDPOINTS' in os.environ:
+        for vhost in os.environ['PROXY_ENDPOINTS'].split(';'):
+            name, host = vhost.split(',')
+            config['services'].append({'name': name, 'host': host})
+    return config
 
 
 def generate_nginx_config():
@@ -69,8 +84,7 @@ def generate_service_config(service):
 @click.option("--start", flag_value=True, help="Start nginx after creating the config files")
 @click.option("--config-file", default="/config.yml", show_default=True, help="The yaml config file to read from")
 @click.option("--output-dir", default="/etc/nginx/conf.d", show_default=True, help="The directory to save config files to")
-@click.option("--dns-tld", envvar="DNS_TLD", help="If defined, this TLD will be used instead of the value in the specified config file. Also reads 'DNS_TLD' environment variable.")
-def main(verbose, start, config_file, output_dir, dns_tld):
+def main(verbose, start, config_file, output_dir):
     log_level = logging.WARNING
     if verbose == 1:
         log_level = logging.INFO
@@ -78,7 +92,7 @@ def main(verbose, start, config_file, output_dir, dns_tld):
         log_level = logging.DEBUG
     logging.basicConfig(level=log_level)
 
-    get_config(config_file, output_dir, dns_tld)
+    get_config(Path(config_file), output_dir)
 
     generate_nginx_config()
 
