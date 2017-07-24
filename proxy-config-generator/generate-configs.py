@@ -15,9 +15,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 log = logging.getLogger()
 
 
-def start_nginx():
+def start_nginx(verbose=0):
+    binary = 'nginx'
+    if verbose >= 2:
+        binary = 'nginx-debug'
+    log.debug("Going to run binary: " + binary)
     try:
-        subprocess.check_output(['nginx'])
+        subprocess.check_output([binary])
     except subprocess.CalledProcessError as e:
         log.error("Failed to start nginx!")
         sys.exit(e.returncode)
@@ -65,9 +69,9 @@ def generate_service_config(service):
     path = os.path.dirname(os.path.realpath(__file__))
     template = os.path.join(path, 'service.template')
     output_config = os.path.join(config['output_dir'], service['name'] + ".conf")
-    print("Generating config for service: Name: %s, TLD: %s, Host: %s, File: %s" % (service['name'], config['tld'], service['host'], output_config))
+    log.info("Generating config for service: Name: %s, TLD: %s, Host: %s, File: %s" % (service['name'], config['tld'], service['host'], output_config))
     # Wait for python 3.6 on alpine linux
-    #print("Generating config for service: Name: {service['name']}, TLD: {config['tld']}, Host: {service['host']}, File: {output_config}")
+    #log.info("Generating config for service: Name: {service['name']}, TLD: {config['tld']}, Host: {service['host']}, File: {output_config}")
 
     with open(template) as f:
         service_template = Template(f.read())
@@ -97,7 +101,8 @@ def main(verbose, start, config_file, output_dir):
     generate_nginx_config()
 
     if start:
-        start_nginx()
+        start_nginx(verbose=verbose)
+
 
 if __name__ == "__main__":
     main()
