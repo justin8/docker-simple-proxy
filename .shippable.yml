@@ -6,6 +6,7 @@ branches:
 
 build:
   ci:
+    - git remote set-url origin git@github.com:justin8/docker-simple-proxy.git
     # Update raspberry-pi2 branch
     - git checkout raspberry-pi2
     - git rebase origin/master
