@@ -10,7 +10,7 @@ build:
     # Update raspberry-pi2 branch
     - git checkout raspberry-pi2
     - git rebase origin/master
-    - GIT_SSH_COMMAND="ssh -i /tmp/ssh/shippabledockersimpleproxydeploykey" git push
+    - GIT_SSH_COMMAND="ssh -i /tmp/ssh/shippabledockersimpleproxydeploykey" git push -f
 
 integrations:
   key:
