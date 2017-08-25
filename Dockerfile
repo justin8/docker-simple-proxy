@@ -1,6 +1,7 @@
-FROM nginx:alpine
+FROM alpine
 
-RUN apk add --update-cache python3
+RUN apk add --update-cache python3 nginx
+RUN mkdir -p /run/nginx
 
 ADD nginx.conf /etc/nginx/nginx.conf
 ADD proxy-config-generator/requirements.txt /requirements.txt
