@@ -1,19 +1,17 @@
 language: none
 
+branches:
+  only:
+    - master
+
 build:
-    pre_ci:
-        - env
-        - apt-get install -y dos2unix
-        - image=${REPO_NAME#*-}
-        - echo $image
-        - docker build --no-cache -t justin8/$image .
-        - docker images
-    push:
-        - image=${REPO_NAME#*-}
-        - echo "Pushing justin8/$image:$version"
-        - docker push justin8/$image:latest
+  ci:
+    # Update raspberry-pi2 branch
+    - git checkout raspberry-pi2
+    - git rebase origin/master
+    - GIT_SSH_COMMAND="ssh -i /tmp/ssh/shippabledockersimpleproxydeploykey" git push
 
 integrations:
-    hub:
-        - integrationName: dockerhub
-          type: docker
+  key:
+    - integrationName: shippable-docker-simple-proxy-deploy-key
+      type: ssh-key
