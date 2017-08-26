@@ -7,8 +7,8 @@ branches:
 build:
   ci:
     - git remote set-url origin git@github.com:justin8/docker-simple-proxy.git
-    # Update raspberry-pi2 branch
-    - git checkout raspberry-pi2
+    # Update armhf branch
+    - git checkout armhf
     - git rebase origin/master
     - GIT_SSH_COMMAND="ssh -i /tmp/ssh/shippabledockersimpleproxydeploykey" git push -f
 
